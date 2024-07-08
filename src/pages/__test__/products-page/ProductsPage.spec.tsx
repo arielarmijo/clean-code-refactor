@@ -14,6 +14,8 @@ import {
     verifyDialog,
     typePrice,
     verifyError,
+    savePrice,
+    verifyPriceAndStatusInRow,
 } from "./ProductsPage.helpers";
 
 const mockWebServer = new MockWebServer();
@@ -83,6 +85,26 @@ describe("Products Page", () => {
             const dialog = await openDialogToEditPrice(0);
             await typePrice(dialog, '10000');
             await verifyError(dialog, 'The max possible price is 999.99');
+        });
+
+        test("Edit price correctly and mark status as active for a price greather than 0", async () => {
+            renderComponent(<ProductsPage />);
+            await waitToTableIsLoaded();
+            const dialog = await openDialogToEditPrice(0);
+            const newPrice = "120.99";
+            await typePrice(dialog, newPrice);
+            await savePrice(dialog);
+            await verifyPriceAndStatusInRow(0 , newPrice, 'active');
+        });
+
+        test("Edit price correctly and mark status as inactive for a price equals to 0", async () => {
+            renderComponent(<ProductsPage />);
+            await waitToTableIsLoaded();
+            const dialog = await openDialogToEditPrice(0);
+            const newPrice = "0";
+            await typePrice(dialog, newPrice);
+            await savePrice(dialog);
+            await verifyPriceAndStatusInRow(0 , newPrice, 'inactive');
         });
     });
 });

@@ -64,3 +64,17 @@ export async function verifyError(dialog: HTMLElement, error: string) {
     const dialogScope = within(dialog);
     await dialogScope.findByText(error);
 }
+
+export async function savePrice(dialog: HTMLElement) {
+    await userEvent.click(within(dialog).getByRole("button", { name: /save/i }));
+}
+
+export async function verifyPriceAndStatusInRow(index: number, newPrice: string, status: string) {
+    const allRows = await screen.findAllByRole("row");
+    const [, ...rows] = allRows;
+    const row = rows[index];
+    const rowScope = within(row);
+    const cells = rowScope.getAllByRole("cell");
+    within(cells[3]).getByText(`$${(+newPrice).toFixed(2)}`);
+    within(cells[4]).getByText(status);
+}
