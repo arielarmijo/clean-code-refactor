@@ -78,3 +78,16 @@ export async function verifyPriceAndStatusInRow(index: number, newPrice: string,
     within(cells[3]).getByText(`$${(+newPrice).toFixed(2)}`);
     within(cells[4]).getByText(status);
 }
+
+export async function changeToNonAdminUser() {
+    await userEvent.click(screen.getByRole('button', {name: /user: admin user/i}));
+    await userEvent.click(screen.getByRole('menuitem', {name: /non admin user/i}));
+}
+
+export async function tryOpenDialogToEditPrice(index: number): Promise<void> {
+    const allRows = screen.getAllByRole("row");
+    const [, ...rows] = allRows;
+    const row = rows[index];
+    await userEvent.click(within(row).getByRole("menuitem"));
+    await userEvent.click(screen.getByRole("menuitem", { name: /update price/i }));
+}

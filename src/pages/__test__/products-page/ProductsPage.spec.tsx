@@ -16,6 +16,8 @@ import {
     verifyError,
     savePrice,
     verifyPriceAndStatusInRow,
+    changeToNonAdminUser,
+    tryOpenDialogToEditPrice,
 } from "./ProductsPage.helpers";
 
 const mockWebServer = new MockWebServer();
@@ -105,6 +107,14 @@ describe("Products Page", () => {
             await typePrice(dialog, newPrice);
             await savePrice(dialog);
             await verifyPriceAndStatusInRow(0 , newPrice, 'inactive');
+        });
+
+        test("Show an error when non admin user try to edit price", async () => {
+            renderComponent(<ProductsPage />);
+            await waitToTableIsLoaded();
+            await changeToNonAdminUser();
+            await tryOpenDialogToEditPrice(0);
+            await screen.findByText(/only admin users can edit the price of a product/i);
         });
     });
 });
