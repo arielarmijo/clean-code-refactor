@@ -80,8 +80,8 @@ export async function verifyPriceAndStatusInRow(index: number, newPrice: string,
 }
 
 export async function changeToNonAdminUser() {
-    await userEvent.click(screen.getByRole('button', {name: /user: admin user/i}));
-    await userEvent.click(screen.getByRole('menuitem', {name: /non admin user/i}));
+    await userEvent.click(screen.getByRole("button", { name: /user: admin user/i }));
+    await userEvent.click(screen.getByRole("menuitem", { name: /non admin user/i }));
 }
 
 export async function tryOpenDialogToEditPrice(index: number): Promise<void> {
@@ -90,4 +90,8 @@ export async function tryOpenDialogToEditPrice(index: number): Promise<void> {
     const row = rows[index];
     await userEvent.click(within(row).getByRole("menuitem"));
     await userEvent.click(screen.getByRole("menuitem", { name: /update price/i }));
+}
+
+export async function verifySaveIsDisable(dialog: HTMLElement) {
+    expect(within(dialog).getByRole("button", { name: /save/i }).closest('button')).toBeDisabled();
 }
