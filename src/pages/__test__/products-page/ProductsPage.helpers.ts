@@ -1,6 +1,7 @@
 import { expect } from "vitest";
 import { within, screen, waitFor } from "@testing-library/react";
 import { RemoteProduct } from "../../../api/StoreApi";
+import userEvent from "@testing-library/user-event";
 
 export function verifyHeader(header: HTMLElement) {
     const headerScope = within(header);
@@ -20,18 +21,35 @@ export function waitToTableIsLoaded() {
 }
 
 export function verifyRows(rows: HTMLElement[], products: RemoteProduct[]) {
-  expect(rows.length).toBe(products.length);
-  rows.forEach((row, i) => {
-    const rowScope = within(row);
-    const cells = rowScope.getAllByRole('cell');
-    expect(cells.length).toBe(6);
-    const product = products[i];
-    within(cells[0]).getByText(product.id);
-    within(cells[1]).getByText(product.title);
+    expect(rows.length).toBe(products.length);
+    rows.forEach((row, i) => {
+        const rowScope = within(row);
+        const cells = rowScope.getAllByRole("cell");
+        expect(cells.length).toBe(6);
+        const product = products[i];
+        within(cells[0]).getByText(product.id);
+        within(cells[1]).getByText(product.title);
 
-    const image: HTMLImageElement = within(cells[2]).getByRole('img');
-    expect(image.src).toBe(product.image); 
-    within(cells[3]).getByText(`$${product.price.toFixed(2)}`);
-    within(cells[4]).getByText(product.price === 0 ? 'inactive' : 'active');
-  });
+        const image: HTMLImageElement = within(cells[2]).getByRole("img");
+        expect(image.src).toBe(product.image);
+        within(cells[3]).getByText(`$${product.price.toFixed(2)}`);
+        within(cells[4]).getByText(product.price === 0 ? "inactive" : "active");
+    });
+}
+
+export async function openDialogToEditPrice(index: number): Promise<HTMLElement> {
+    const allRows = screen.getAllByRole("row");
+    const [, ...rows] = allRows;
+    const row = rows[index];
+    await userEvent.click(within(row).getByRole("menuitem"));
+    await userEvent.click(screen.getByRole("menuitem", { name: /update price/i }));
+    return screen.getByRole("dialog");
+}
+
+export function verifyDialog(dialog: HTMLElement, product: RemoteProduct) {
+    const dialogScope = within(dialog);
+    const image: HTMLImageElement = dialogScope.getByRole("img");
+    expect(image.src).toBe(product.image);
+    dialogScope.getByText(product.title);
+    dialogScope.getByDisplayValue(product.price);
 }
