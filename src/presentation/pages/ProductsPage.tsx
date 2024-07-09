@@ -12,7 +12,9 @@ import { MainAppBar } from "../components/MainAppBar";
 import { useAppContext } from "../context/useAppContext";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
 import { StoreApi } from "../../datos/api/StoreApi";
-import { buildProduct, useProducts } from "./useProducts";
+import { useProducts } from "./useProducts";
+import { GetProductUseCase, buildProduct } from "../../domain/GetProductsUseCase";
+import { Product } from "../../domain/Product";
 
 const baseColumn: Partial<GridColDef<Product>> = {
     disableColumnMenu: true,
@@ -21,10 +23,15 @@ const baseColumn: Partial<GridColDef<Product>> = {
 
 const storeApi = new StoreApi();
 
+function createGetProductsUseCase(): GetProductUseCase {
+    return new GetProductUseCase(storeApi);
+}
+
 /* La página de productos solo debe encargarse del renderizado */
 export const ProductsPage: React.FC = () => {
     const { currentUser } = useAppContext();
-    const { products, reload } = useProducts(storeApi);
+    const getProductsUseCase = useMemo(() => createGetProductsUseCase(), []);
+    const { products, reload } = useProducts(getProductsUseCase);
 
     const [snackBarError, setSnackBarError] = useState<string>();
     const [snackBarSuccess, setSnackBarSuccess] = useState<string>();
@@ -261,13 +268,6 @@ const ProductImage = styled.img`
 `;
 
 type ProductStatus = "active" | "inactive";
-
-export interface Product {
-    id: number;
-    title: string;
-    image: string;
-    price: string;
-}
 
 const StatusContainer = styled.div<{ status: ProductStatus }>`
     background: ${props => (props.status === "inactive" ? "red" : "green")};

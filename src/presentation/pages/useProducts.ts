@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Product } from "./ProductsPage";
 import { useReload } from "../hooks/useReload";
-import { RemoteProduct, StoreApi } from "../../datos/api/StoreApi";
+import { GetProductUseCase } from "../../domain/GetProductsUseCase";
+import { Product } from "../../domain/Product";
 
 /* El custom hook solo debe encargarse de la lógica de presentación:
  * - cuándo cargar los productos.
@@ -9,33 +9,19 @@ import { RemoteProduct, StoreApi } from "../../datos/api/StoreApi";
  * - cuándo mostrar un error al usuario.
  * - etc.
  */
-export function useProducts(storeApi: StoreApi) {
+export function useProducts(getProductUseCase: GetProductUseCase) {
     const [reloadKey, reload] = useReload();
     const [products, setProducts] = useState<Product[]>([]);
 
     useEffect(() => {
-        storeApi.getAll().then(response => {
+        getProductUseCase.execute().then(products => {
             console.debug("Reloading", reloadKey);
-            const remoteProducts = response;
-            const products = remoteProducts.map(buildProduct);
             setProducts(products);
         });
-    }, [reloadKey, storeApi]);
+    }, [getProductUseCase, reloadKey]);
 
     return {
         products,
         reload,
-    };
-}
-
-export function buildProduct(remoteProduct: RemoteProduct): Product {
-    return {
-        id: remoteProduct.id,
-        title: remoteProduct.title,
-        image: remoteProduct.image,
-        price: remoteProduct.price.toLocaleString("en-US", {
-            maximumFractionDigits: 2,
-            minimumFractionDigits: 2,
-        }),
     };
 }
