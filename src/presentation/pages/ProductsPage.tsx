@@ -11,7 +11,7 @@ import { Footer } from "../components/Footer";
 import { MainAppBar } from "../components/MainAppBar";
 import { useAppContext } from "../context/useAppContext";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
-import { StoreApi } from "../api/StoreApi";
+import { StoreApi } from "../../datos/api/StoreApi";
 import { buildProduct, useProducts } from "./useProducts";
 
 const baseColumn: Partial<GridColDef<Product>> = {
@@ -21,6 +21,7 @@ const baseColumn: Partial<GridColDef<Product>> = {
 
 const storeApi = new StoreApi();
 
+/* La página de productos solo debe encargarse del renderizado */
 export const ProductsPage: React.FC = () => {
     const { currentUser } = useAppContext();
     const { products, reload } = useProducts(storeApi);

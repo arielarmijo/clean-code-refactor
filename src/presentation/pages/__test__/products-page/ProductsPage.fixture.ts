@@ -1,5 +1,5 @@
-import { RemoteProduct } from "../../../api/StoreApi";
-import { MockWebServer } from "../../../tests/MockWebServer";
+import { RemoteProduct } from "../../../../datos/api/StoreApi";
+import { MockWebServer } from "../../../../tests/MockWebServer";
 import productResponse from "./data/products.json";
 
 export function givenAProducts(mockWebServer: MockWebServer): RemoteProduct[] {

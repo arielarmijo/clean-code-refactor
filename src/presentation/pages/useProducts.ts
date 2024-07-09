@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
 import { Product } from "./ProductsPage";
 import { useReload } from "../hooks/useReload";
-import { RemoteProduct, StoreApi } from "../api/StoreApi";
+import { RemoteProduct, StoreApi } from "../../datos/api/StoreApi";
 
+/* El custom hook solo debe encargarse de la lógica de presentación:
+ * - cuándo cargar los productos.
+ * - cuándo guardar los productos.
+ * - cuándo mostrar un error al usuario.
+ * - etc.
+ */
 export function useProducts(storeApi: StoreApi) {
     const [reloadKey, reload] = useReload();
     const [products, setProducts] = useState<Product[]>([]);
@@ -10,7 +16,7 @@ export function useProducts(storeApi: StoreApi) {
     useEffect(() => {
         storeApi.getAll().then(response => {
             console.debug("Reloading", reloadKey);
-            const remoteProducts = response as RemoteProduct[];
+            const remoteProducts = response;
             const products = remoteProducts.map(buildProduct);
             setProducts(products);
         });

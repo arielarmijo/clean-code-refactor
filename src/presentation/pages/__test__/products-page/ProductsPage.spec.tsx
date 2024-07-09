@@ -4,7 +4,7 @@ import { RenderResult, render, screen } from "@testing-library/react";
 import {} from "@testing-library/user-event";
 import { AppProvider } from "../../../context/AppProvider";
 import { ProductsPage } from "../../ProductsPage";
-import { MockWebServer } from "../../../tests/MockWebServer";
+import { MockWebServer } from "../../../../tests/MockWebServer";
 import { givenAProducts, givenNoProducts } from "./ProductsPage.fixture";
 import {
     verifyHeader,
