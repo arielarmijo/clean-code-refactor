@@ -4,7 +4,7 @@ import { ProductRepository } from "./ProductRepository";
 /* El caso de uso solo debe llamar a persistencia mediante inversión de dependencias.
  * Es agnóstica de dónde se obtienen los datos.
  */
-export class GetProductUseCase {
+export class GetProductsUseCase {
     constructor(private productRepository: ProductRepository) {}
 
     execute(): Promise<Product[]> {

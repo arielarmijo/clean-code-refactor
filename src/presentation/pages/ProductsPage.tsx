@@ -12,9 +12,10 @@ import { MainAppBar } from "../components/MainAppBar";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
 import { StoreApi } from "../../datos/api/StoreApi";
 import { useProducts } from "./useProducts";
-import { GetProductUseCase } from "../../domain/GetProductsUseCase";
+import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
 import { Product } from "../../domain/Product";
 import { ProductApiRepository } from "../../datos/api/ProductApiRepository";
+import { GetProductByIdUseCase } from "../../domain/GetProductByIdUseCase";
 
 const baseColumn: Partial<GridColDef<Product>> = {
     disableColumnMenu: true,
@@ -23,15 +24,20 @@ const baseColumn: Partial<GridColDef<Product>> = {
 
 const storeApi = new StoreApi();
 
-function createGetProductsUseCase(): GetProductUseCase {
+function createGetProductsUseCase(): GetProductsUseCase {
     const productRepository = new ProductApiRepository(storeApi);
-    return new GetProductUseCase(productRepository);
+    return new GetProductsUseCase(productRepository);
+}
+
+function createGetProductByIdUseCase(): GetProductByIdUseCase {
+    return new GetProductByIdUseCase(storeApi);
 }
 
 /* La página de productos solo debe encargarse del renderizado */
 export const ProductsPage: React.FC = () => {
     const getProductsUseCase = useMemo(() => createGetProductsUseCase(), []);
-    const { products, editingProduct, error, reload, setEditingProduct, updatingQuantity, cancelEditPrice } = useProducts(getProductsUseCase, storeApi);
+    const getProductByIdUseCase = useMemo(() => createGetProductByIdUseCase(), []);
+    const { products, editingProduct, error, reload, setEditingProduct, updatingQuantity, cancelEditPrice } = useProducts(getProductsUseCase, getProductByIdUseCase);
 
     /** @deprecated use error returned in useProduct instead of snackBarError */
     const [snackBarError, setSnackBarError] = useState<string>();

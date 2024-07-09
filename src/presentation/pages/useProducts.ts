@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useReload } from "../hooks/useReload";
-import { GetProductUseCase } from "../../domain/GetProductsUseCase";
+import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
 import { Product } from "../../domain/Product";
-import { StoreApi } from "../../datos/api/StoreApi";
 import { useAppContext } from "../context/useAppContext";
-import { buildProduct } from "../../datos/api/ProductApiRepository";
+import { GetProductByIdUseCase, ResourceNotFound } from "../../domain/GetProductByIdUseCase";
 
 /* El custom hook solo debe encargarse de la lógica de presentación:
  * - cuándo cargar los productos.
@@ -12,7 +11,10 @@ import { buildProduct } from "../../datos/api/ProductApiRepository";
  * - cuándo mostrar un error al usuario.
  * - etc.
  */
-export function useProducts(getProductUseCase: GetProductUseCase, storeApi: StoreApi) {
+export function useProducts(
+    getProductUseCase: GetProductsUseCase,
+    getProductByIdUseCase: GetProductByIdUseCase
+) {
     const { currentUser } = useAppContext();
     const [reloadKey, reload] = useReload();
     const [products, setProducts] = useState<Product[]>([]);
@@ -33,18 +35,19 @@ export function useProducts(getProductUseCase: GetProductUseCase, storeApi: Stor
                     setError("Only admin users can edit the price of a product");
                     return;
                 }
-                storeApi
-                    .get(id)
-                    .then(buildProduct)
-                    .then(product => {
-                        setEditingProduct(product);
-                    })
-                    .catch(() => {
-                        setError(`Product with id ${id} not found`);
-                    });
+                try {
+                    const product = await getProductByIdUseCase.execute(id);
+                    setEditingProduct(product);
+                } catch (error) {
+                    if (error instanceof ResourceNotFound) {
+                        setError(error.message);
+                    } else {
+                        setError("Unexpected error has ocurred");
+                    }
+                }
             }
         },
-        [currentUser.isAdmin, storeApi]
+        [currentUser.isAdmin, getProductByIdUseCase]
     );
 
     const cancelEditPrice = useCallback(() => {
@@ -58,6 +61,6 @@ export function useProducts(getProductUseCase: GetProductUseCase, storeApi: Stor
         setEditingProduct,
         reload,
         updatingQuantity,
-        cancelEditPrice
+        cancelEditPrice,
     };
 }
