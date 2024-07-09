@@ -23,21 +23,29 @@ const baseColumn: Partial<GridColDef<Product>> = {
 };
 
 const storeApi = new StoreApi();
+const productRepository = new ProductApiRepository(storeApi);
 
 function createGetProductsUseCase(): GetProductsUseCase {
-    const productRepository = new ProductApiRepository(storeApi);
     return new GetProductsUseCase(productRepository);
 }
 
 function createGetProductByIdUseCase(): GetProductByIdUseCase {
-    return new GetProductByIdUseCase(storeApi);
+    return new GetProductByIdUseCase(productRepository);
 }
 
 /* La página de productos solo debe encargarse del renderizado */
 export const ProductsPage: React.FC = () => {
     const getProductsUseCase = useMemo(() => createGetProductsUseCase(), []);
     const getProductByIdUseCase = useMemo(() => createGetProductByIdUseCase(), []);
-    const { products, editingProduct, error, reload, setEditingProduct, updatingQuantity, cancelEditPrice } = useProducts(getProductsUseCase, getProductByIdUseCase);
+    const {
+        products,
+        editingProduct,
+        error,
+        reload,
+        setEditingProduct,
+        updatingQuantity,
+        cancelEditPrice,
+    } = useProducts(getProductsUseCase, getProductByIdUseCase);
 
     /** @deprecated use error returned in useProduct instead of snackBarError */
     const [snackBarError, setSnackBarError] = useState<string>();

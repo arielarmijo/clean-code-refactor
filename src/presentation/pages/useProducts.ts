@@ -3,7 +3,8 @@ import { useReload } from "../hooks/useReload";
 import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
 import { Product } from "../../domain/Product";
 import { useAppContext } from "../context/useAppContext";
-import { GetProductByIdUseCase, ResourceNotFound } from "../../domain/GetProductByIdUseCase";
+import { GetProductByIdUseCase } from "../../domain/GetProductByIdUseCase";
+import { ResourceNotFound } from "../../datos/api/ProductApiRepository";
 
 /* El custom hook solo debe encargarse de la lógica de presentación:
  * - cuándo cargar los productos.
