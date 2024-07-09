@@ -13,8 +13,9 @@ import { useAppContext } from "../context/useAppContext";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
 import { StoreApi } from "../../datos/api/StoreApi";
 import { useProducts } from "./useProducts";
-import { GetProductUseCase, buildProduct } from "../../domain/GetProductsUseCase";
+import { GetProductUseCase } from "../../domain/GetProductsUseCase";
 import { Product } from "../../domain/Product";
+import { ProductApiRepository, buildProduct } from "../../datos/api/ProductApiRepository";
 
 const baseColumn: Partial<GridColDef<Product>> = {
     disableColumnMenu: true,
@@ -24,7 +25,8 @@ const baseColumn: Partial<GridColDef<Product>> = {
 const storeApi = new StoreApi();
 
 function createGetProductsUseCase(): GetProductUseCase {
-    return new GetProductUseCase(storeApi);
+    const productRepository = new ProductApiRepository(storeApi);
+    return new GetProductUseCase(productRepository);
 }
 
 /* La página de productos solo debe encargarse del renderizado */
