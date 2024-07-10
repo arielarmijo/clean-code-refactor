@@ -7,6 +7,9 @@ import { GetProductByIdUseCase } from "../../domain/GetProductByIdUseCase";
 import { ResourceNotFound } from "../../datos/api/ProductApiRepository";
 import { Price, ValidationError } from "../../domain/Price";
 
+export type ProductStatus = "active" | "inactive";
+export type ProductViewModel = Product & { status: ProductStatus };
+
 /* El custom hook solo debe encargarse de la lógica de presentación:
  * - cuándo cargar los productos.
  * - cuándo guardar los productos.
@@ -19,15 +22,15 @@ export function useProducts(
 ) {
     const { currentUser } = useAppContext();
     const [reloadKey, reload] = useReload();
-    const [products, setProducts] = useState<Product[]>([]);
-    const [editingProduct, setEditingProduct] = useState<Product>();
+    const [products, setProducts] = useState<ProductViewModel[]>([]);
+    const [editingProduct, setEditingProduct] = useState<ProductViewModel>();
     const [error, setError] = useState<string>();
     const [priceError, setPriceError] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         getProductUseCase.execute().then(products => {
             console.debug("Reloading", reloadKey);
-            setProducts(products);
+            setProducts(products.map(buildProductViewModel));
         });
     }, [getProductUseCase, reloadKey]);
 
@@ -40,7 +43,7 @@ export function useProducts(
                 }
                 try {
                     const product = await getProductByIdUseCase.execute(id);
-                    setEditingProduct(product);
+                    setEditingProduct(buildProductViewModel(product));
                 } catch (error) {
                     if (error instanceof ResourceNotFound) {
                         setError(error.message);
@@ -84,4 +87,8 @@ export function useProducts(
         cancelEditPrice,
         onChangePrice,
     };
+}
+
+function buildProductViewModel(product: Product): ProductViewModel {
+    return { ...product, status: +product.price === 0 ? "inactive" : "active" };
 }
