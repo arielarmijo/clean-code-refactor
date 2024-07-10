@@ -5,6 +5,7 @@ import { Product } from "../../domain/Product";
 import { useAppContext } from "../context/useAppContext";
 import { GetProductByIdUseCase } from "../../domain/GetProductByIdUseCase";
 import { ResourceNotFound } from "../../datos/api/ProductApiRepository";
+import { Price, ValidationError } from "../../domain/Price";
 
 /* El custom hook solo debe encargarse de la lógica de presentación:
  * - cuándo cargar los productos.
@@ -59,21 +60,18 @@ export function useProducts(
     const onChangePrice = (price: string): void => {
         if (!editingProduct) return;
 
-        const isValidNumber = !isNaN(+price);
-        setEditingProduct({ ...editingProduct, price });
-
-        if (!isValidNumber) {
-            setPriceError("Only numbers are allowed");
-        } else {
-            if (!priceRegex.test(price)) {
-                setPriceError("Invalid price format");
-            } else if (+price > 999.99) {
-                setPriceError("The max possible price is 999.99");
+        try {
+            setEditingProduct({ ...editingProduct, price });
+            Price.create(price);
+            setPriceError(undefined);
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                setPriceError(error.message);
             } else {
-                setPriceError(undefined);
+                setPriceError("Unexpected error has ocurred");
             }
         }
-    }
+    };
 
     return {
         error,
@@ -84,8 +82,6 @@ export function useProducts(
         reload,
         updatingQuantity,
         cancelEditPrice,
-        onChangePrice
+        onChangePrice,
     };
 }
-
-const priceRegex = /^\d+(\.\d{1,2})?$/;
