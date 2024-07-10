@@ -10,33 +10,19 @@ import {
 import { Footer } from "../components/Footer";
 import { MainAppBar } from "../components/MainAppBar";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
-import { StoreApi } from "../../datos/api/StoreApi";
 import { useProducts } from "./useProducts";
-import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
 import { Product } from "../../domain/Product";
-import { ProductApiRepository } from "../../datos/api/ProductApiRepository";
-import { GetProductByIdUseCase } from "../../domain/GetProductByIdUseCase";
+import { CompositionRoot } from "../../CompositionRoot";
 
 const baseColumn: Partial<GridColDef<Product>> = {
     disableColumnMenu: true,
     sortable: false,
 };
 
-const storeApi = new StoreApi();
-const productRepository = new ProductApiRepository(storeApi);
-
-function createGetProductsUseCase(): GetProductsUseCase {
-    return new GetProductsUseCase(productRepository);
-}
-
-function createGetProductByIdUseCase(): GetProductByIdUseCase {
-    return new GetProductByIdUseCase(productRepository);
-}
-
 /* La página de productos solo debe encargarse del renderizado */
 export const ProductsPage: React.FC = () => {
-    const getProductsUseCase = useMemo(() => createGetProductsUseCase(), []);
-    const getProductByIdUseCase = useMemo(() => createGetProductByIdUseCase(), []);
+    const getProductsUseCase = useMemo(() => CompositionRoot.getInstance().provideGetProductsUseCase(), []);
+    const getProductByIdUseCase = useMemo(() => CompositionRoot.getInstance().provideGetProductByIdUseCase(), []);
     const {
         products,
         editingProduct,
@@ -78,6 +64,7 @@ export const ProductsPage: React.FC = () => {
     // FIXME: Save price
     async function saveEditPrice(): Promise<void> {
         if (editingProduct) {
+            const storeApi = CompositionRoot.getInstance().provideStoreApi();
             const remoteProduct = await storeApi.get(editingProduct.id);
 
             if (!remoteProduct) return;
