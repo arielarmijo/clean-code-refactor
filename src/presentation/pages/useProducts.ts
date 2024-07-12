@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useReload } from "../hooks/useReload";
 import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
-import { Product } from "../../domain/Product";
+import { Product, ProductData, ProductStatus } from "../../domain/Product";
 import { useAppContext } from "../context/useAppContext";
 import { GetProductByIdUseCase } from "../../domain/GetProductByIdUseCase";
 import { ResourceNotFound } from "../../datos/api/ProductApiRepository";
 import { Price, ValidationError } from "../../domain/Price";
 
-export type ProductStatus = "active" | "inactive";
-export type ProductViewModel = Product & { status: ProductStatus };
+export type ProductViewModel = ProductData & { status: ProductStatus };
 
 /* El custom hook solo debe encargarse de la lógica de presentación:
  * - cuándo cargar los productos.
@@ -23,7 +22,7 @@ export function useProducts(
     const { currentUser } = useAppContext();
     const [reloadKey, reload] = useReload();
     const [products, setProducts] = useState<ProductViewModel[]>([]);
-    const [editingProduct, setEditingProduct] = useState<ProductViewModel>();
+    const [editingProduct, setEditingProduct] = useState<ProductViewModel>(); 
     const [error, setError] = useState<string>();
     const [priceError, setPriceError] = useState<string | undefined>(undefined);
 
@@ -90,5 +89,5 @@ export function useProducts(
 }
 
 function buildProductViewModel(product: Product): ProductViewModel {
-    return { ...product, status: +product.price === 0 ? "inactive" : "active" };
+    return { ...product, price: product.price.value.toFixed(2) };
 }

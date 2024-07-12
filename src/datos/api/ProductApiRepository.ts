@@ -1,5 +1,5 @@
 import { Product } from "../../domain/Product";
-import { ProductRepository } from "../../domain/ProductRepository";
+ import { ProductRepository } from "../../domain/ProductRepository";
 import { RemoteProduct, StoreApi } from "./StoreApi";
 
 export class ResourceNotFound extends Error {}
@@ -23,7 +23,7 @@ export class ProductApiRepository implements ProductRepository {
 }
 
 function buildProduct(remoteProduct: RemoteProduct): Product {
-    return {
+    return Product.create({
         id: remoteProduct.id,
         title: remoteProduct.title,
         image: remoteProduct.image,
@@ -31,5 +31,5 @@ function buildProduct(remoteProduct: RemoteProduct): Product {
             maximumFractionDigits: 2,
             minimumFractionDigits: 2,
         }),
-    };
+    });
 }
