@@ -6,7 +6,7 @@ import { useAppContext } from "../context/useAppContext";
 import { GetProductByIdUseCase } from "../../domain/GetProductByIdUseCase";
 import { ResourceNotFound } from "../../datos/api/ProductApiRepository";
 import { Price, ValidationError } from "../../domain/Price";
-import { CompositionRoot } from "../../CompositionRoot";
+import { UpdateProductPriceUseCase } from "../../domain/UpdateProductPriceUseCase";
 
 export type ProductViewModel = ProductData & { status: ProductStatus };
 export type Message = { type: "error" | "success"; text: string };
@@ -19,7 +19,8 @@ export type Message = { type: "error" | "success"; text: string };
  */
 export function useProducts(
     getProductUseCase: GetProductsUseCase,
-    getProductByIdUseCase: GetProductByIdUseCase
+    getProductByIdUseCase: GetProductByIdUseCase,
+    updateProductPriceUseCase: UpdateProductPriceUseCase
 ) {
     const { currentUser } = useAppContext();
     const [reloadKey, reload] = useReload();
@@ -82,19 +83,12 @@ export function useProducts(
 
     async function saveEditPrice(): Promise<void> {
         if (editingProduct) {
-            const storeApi = CompositionRoot.getInstance().provideStoreApi();
-            const remoteProduct = await storeApi.get(editingProduct.id);
-
-            if (!remoteProduct) return;
-
-            const editedRemoteProduct = {
-                ...remoteProduct,
-                price: Number(editingProduct.price),
-            };
-
             try {
-                await storeApi.post(editedRemoteProduct);
-
+                await updateProductPriceUseCase.execute(
+                    editingProduct.id,
+                    editingProduct.price,
+                    currentUser
+                );
                 setMessage({
                     type: "success",
                     text: `Price ${editingProduct.price} for '${editingProduct.title}' updated`,
@@ -102,10 +96,14 @@ export function useProducts(
                 setEditingProduct(undefined);
                 reload();
             } catch (error) {
-                setMessage({
-                    type: "error",
-                    text: `An error has ocurred updating the price ${editingProduct.price} for '${editingProduct.title}'`,
-                });
+                if (error instanceof ResourceNotFound) {
+                    setMessage({ type: "error", text: error.message });
+                } else {
+                    setMessage({
+                        type: "error",
+                        text: `An error has ocurred updating the price ${editingProduct.price} for '${editingProduct.title}'`,
+                    });
+                }
                 setEditingProduct(undefined);
                 reload();
             }
@@ -122,7 +120,6 @@ export function useProducts(
         editingProduct,
         priceError,
         setEditingProduct,
-        reload,
         updatingQuantity,
         cancelEditPrice,
         onChangePrice,

@@ -20,7 +20,7 @@ const baseColumn: Partial<GridColDef<ProductViewModel>> = {
     sortable: false,
 };
 
-/* La página de productos solo debe encargarse del renderizado */
+/* La página de productos solo debe encargarse del renderizado (lógica de renderizado) */
 export const ProductsPage: React.FC = () => {
     const getProductsUseCase = useMemo(
         () => CompositionRoot.getInstance().provideGetProductsUseCase(),
@@ -28,6 +28,10 @@ export const ProductsPage: React.FC = () => {
     );
     const getProductByIdUseCase = useMemo(
         () => CompositionRoot.getInstance().provideGetProductByIdUseCase(),
+        []
+    );
+    const updateProductPriceUseCase = useMemo(
+        () => CompositionRoot.getInstance().provideUpdateProductPriceUseCase(),
         []
     );
     const {
@@ -40,7 +44,7 @@ export const ProductsPage: React.FC = () => {
         cancelEditPrice,
         saveEditPrice,
         onCloseMessage,
-    } = useProducts(getProductsUseCase, getProductByIdUseCase);
+    } = useProducts(getProductsUseCase, getProductByIdUseCase, updateProductPriceUseCase);
 
     function handleChangePrice(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void {
         onChangePrice(event.target.value);
