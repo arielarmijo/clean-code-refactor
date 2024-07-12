@@ -12,7 +12,7 @@ import { MainAppBar } from "../components/MainAppBar";
 import { ConfirmationDialog } from "../components/ConfirmationDialog";
 import { useProducts } from "./useProducts";
 import { CompositionRoot } from "../../CompositionRoot";
-import { ProductViewModel } from "./useProducts";
+import { ProductViewModel } from "./useProductsState";
 import { ProductStatus } from "../../domain/Product";
 
 const baseColumn: Partial<GridColDef<ProductViewModel>> = {

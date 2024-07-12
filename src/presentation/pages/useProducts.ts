@@ -1,15 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useReload } from "../hooks/useReload";
 import { GetProductsUseCase } from "../../domain/GetProductsUseCase";
-import { Product, ProductData, ProductStatus } from "../../domain/Product";
+import { Product } from "../../domain/Product";
 import { useAppContext } from "../context/useAppContext";
 import { GetProductByIdUseCase } from "../../domain/GetProductByIdUseCase";
 import { ResourceNotFound } from "../../datos/api/ProductApiRepository";
 import { Price, ValidationError } from "../../domain/Price";
 import { UpdateProductPriceUseCase } from "../../domain/UpdateProductPriceUseCase";
-
-export type ProductViewModel = ProductData & { status: ProductStatus };
-export type Message = { type: "error" | "success"; text: string };
+import { Message, ProductViewModel, UseProductsState } from "./useProductsState";
 
 /* El custom hook solo debe encargarse de la lógica de presentación:
  * - cuándo cargar los productos.
@@ -21,7 +19,7 @@ export function useProducts(
     getProductUseCase: GetProductsUseCase,
     getProductByIdUseCase: GetProductByIdUseCase,
     updateProductPriceUseCase: UpdateProductPriceUseCase
-) {
+): UseProductsState {
     const { currentUser } = useAppContext();
     const [reloadKey, reload] = useReload();
     const [products, setProducts] = useState<ProductViewModel[]>([]);
@@ -65,23 +63,26 @@ export function useProducts(
         setEditingProduct(undefined);
     }, []);
 
-    const onChangePrice = (price: string): void => {
-        if (!editingProduct) return;
+    const onChangePrice = useCallback(
+        (price: string): void => {
+            if (!editingProduct) return;
 
-        try {
-            setEditingProduct({ ...editingProduct, price });
-            Price.create(price);
-            setPriceError(undefined);
-        } catch (error) {
-            if (error instanceof ValidationError) {
-                setPriceError(error.message);
-            } else {
-                setPriceError("Unexpected error has ocurred");
+            try {
+                setEditingProduct({ ...editingProduct, price });
+                Price.create(price);
+                setPriceError(undefined);
+            } catch (error) {
+                if (error instanceof ValidationError) {
+                    setPriceError(error.message);
+                } else {
+                    setPriceError("Unexpected error has ocurred");
+                }
             }
-        }
-    };
+        },
+        [editingProduct]
+    );
 
-    async function saveEditPrice(): Promise<void> {
+    const saveEditPrice = useCallback(async (): Promise<void> => {
         if (editingProduct) {
             try {
                 await updateProductPriceUseCase.execute(
@@ -108,7 +109,7 @@ export function useProducts(
                 reload();
             }
         }
-    }
+    }, [currentUser, editingProduct, reload, updateProductPriceUseCase]);
 
     const onCloseMessage = useCallback(() => {
         setMessage(undefined);
@@ -119,7 +120,6 @@ export function useProducts(
         products,
         editingProduct,
         priceError,
-        setEditingProduct,
         updatingQuantity,
         cancelEditPrice,
         onChangePrice,
