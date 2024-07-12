@@ -6,8 +6,10 @@ import { useAppContext } from "../context/useAppContext";
 import { GetProductByIdUseCase } from "../../domain/GetProductByIdUseCase";
 import { ResourceNotFound } from "../../datos/api/ProductApiRepository";
 import { Price, ValidationError } from "../../domain/Price";
+import { CompositionRoot } from "../../CompositionRoot";
 
 export type ProductViewModel = ProductData & { status: ProductStatus };
+export type Message = { type: "error" | "success"; text: string };
 
 /* El custom hook solo debe encargarse de la lógica de presentación:
  * - cuándo cargar los productos.
@@ -22,8 +24,8 @@ export function useProducts(
     const { currentUser } = useAppContext();
     const [reloadKey, reload] = useReload();
     const [products, setProducts] = useState<ProductViewModel[]>([]);
-    const [editingProduct, setEditingProduct] = useState<ProductViewModel>(); 
-    const [error, setError] = useState<string>();
+    const [editingProduct, setEditingProduct] = useState<ProductViewModel>();
+    const [message, setMessage] = useState<Message>();
     const [priceError, setPriceError] = useState<string | undefined>(undefined);
 
     useEffect(() => {
@@ -37,7 +39,10 @@ export function useProducts(
         async (id: number) => {
             if (id) {
                 if (!currentUser.isAdmin) {
-                    setError("Only admin users can edit the price of a product");
+                    setMessage({
+                        type: "error",
+                        text: "Only admin users can edit the price of a product",
+                    });
                     return;
                 }
                 try {
@@ -45,9 +50,9 @@ export function useProducts(
                     setEditingProduct(buildProductViewModel(product));
                 } catch (error) {
                     if (error instanceof ResourceNotFound) {
-                        setError(error.message);
+                        setMessage({ type: "error", text: error.message });
                     } else {
-                        setError("Unexpected error has ocurred");
+                        setMessage({ type: "error", text: "Unexpected error has ocurred" });
                     }
                 }
             }
@@ -75,8 +80,44 @@ export function useProducts(
         }
     };
 
+    async function saveEditPrice(): Promise<void> {
+        if (editingProduct) {
+            const storeApi = CompositionRoot.getInstance().provideStoreApi();
+            const remoteProduct = await storeApi.get(editingProduct.id);
+
+            if (!remoteProduct) return;
+
+            const editedRemoteProduct = {
+                ...remoteProduct,
+                price: Number(editingProduct.price),
+            };
+
+            try {
+                await storeApi.post(editedRemoteProduct);
+
+                setMessage({
+                    type: "success",
+                    text: `Price ${editingProduct.price} for '${editingProduct.title}' updated`,
+                });
+                setEditingProduct(undefined);
+                reload();
+            } catch (error) {
+                setMessage({
+                    type: "error",
+                    text: `An error has ocurred updating the price ${editingProduct.price} for '${editingProduct.title}'`,
+                });
+                setEditingProduct(undefined);
+                reload();
+            }
+        }
+    }
+
+    const onCloseMessage = useCallback(() => {
+        setMessage(undefined);
+    }, []);
+
     return {
-        error,
+        message,
         products,
         editingProduct,
         priceError,
@@ -85,6 +126,8 @@ export function useProducts(
         updatingQuantity,
         cancelEditPrice,
         onChangePrice,
+        saveEditPrice,
+        onCloseMessage,
     };
 }
 
