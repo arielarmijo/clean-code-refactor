@@ -1,5 +1,5 @@
 import { Product } from "../../domain/Product";
- import { ProductRepository } from "../../domain/ProductRepository";
+import { ProductRepository } from "../../domain/ProductRepository";
 import { RemoteProduct, StoreApi } from "./StoreApi";
 
 export class ResourceNotFound extends Error {}
@@ -19,6 +19,16 @@ export class ProductApiRepository implements ProductRepository {
         } catch (error) {
             throw new ResourceNotFound(`Product with id ${id} not found`);
         }
+    }
+
+    async save(product: Product): Promise<void> {
+        const remoteProduct = await this.storeApi.get(product.id);
+        if (!remoteProduct) return;
+        const editedRemoteProduct = {
+            ...remoteProduct,
+            price: product.price.value,
+        };
+        return this.storeApi.post(editedRemoteProduct);
     }
 }
 

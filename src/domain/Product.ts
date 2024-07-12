@@ -29,6 +29,14 @@ export class Product extends Entity {
     }
 
     static create(data: ProductData): Product {
+        return Product.validateAndCreate(data);
+    }
+
+    editPrice(newPrice: string): Product {
+        return Product.validateAndCreate({ ...this, price: newPrice });
+    }
+
+    private static validateAndCreate(data: ProductData): Product {
         const price = Price.create(data.price);
         const status = price.value === 0 ? "inactive" : "active";
         return new Product({ ...data, price, status });
